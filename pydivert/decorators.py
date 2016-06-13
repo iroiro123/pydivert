@@ -17,12 +17,17 @@ from contextlib import contextmanager
 import ctypes
 import functools
 import os
+from ctypes.wintypes import DWORD
 
 __author__ = 'fabio'
 #0      Success
 #997    Overlapped I/O is in progress
 SUCCESS_RETCODES = (0, 997)
 
+kernel32 = ctypes.cdll.LoadLibrary("kernel32.dll")
+GetLastError = kernel32.GetLastError
+GetLastError.restype = DWORD
+GetLastError.argtypes = []
 
 def winerror_on_retcode(funct):
     """
@@ -32,9 +37,9 @@ def winerror_on_retcode(funct):
     @functools.wraps(funct)
     def wrapper(instance, *args, **kwargs):
         result = funct(instance, *args, **kwargs)
-        retcode = ctypes.GetLastError()
+        retcode = GetLastError()
         if retcode not in SUCCESS_RETCODES:
-            raise ctypes.WinError(code=retcode)
+            raise Exception()
         return result
 
     return wrapper

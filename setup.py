@@ -29,8 +29,8 @@ from setuptools.command.install import install as _install
 workdir = os.path.abspath(os.path.dirname(__file__))
 
 windivert = {
-    "version": "1.1.7",
-    "compiler": "WDDK",  # MSVC | MINGW
+    "version": "1.1.8",
+    "compiler": "MINGW",  # MSVC | MINGW
     "url": "https://github.com/basil00/Divert/releases/download/v%(version)s/WinDivert-%(version)s-%(compiler)s.zip"
 }
 

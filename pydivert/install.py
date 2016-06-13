@@ -159,6 +159,7 @@ class WinDivertInstaller:
             for f in (dll_file, sys_file):
                 sys.stdout.write("Copying %s to %s\n" % (f, self.inst_dir))
                 shutil.copy(f, self.inst_dir)
+                os.chmod(os.path.join(self.inst_dir, os.path.basename(f)), 0755)
 
             sys.stdout.write("Trying to register driver...\n")
             self.check_driver_path(os.path.join(self.inst_dir, "WinDivert.dll"))

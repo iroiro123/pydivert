@@ -16,17 +16,21 @@
 from _ctypes import byref
 from binascii import unhexlify, hexlify
 import socket
-from ctypes import Structure, c_uint32, c_uint8, c_uint16, create_string_buffer, c_int
+from ctypes import Structure, c_uint32, c_uint8, c_uint16, create_string_buffer, c_int, cdll
 from ctypes.wintypes import DWORD
 from time import sleep
 
 from pydivert import enum
 from pydivert.enum import Direction, Defaults
-from pydivert.winutils import string_to_addr, addr_to_string, CreateEvent, OVERLAPPED, GetOverlappedResult, GetLastError
+from pydivert.winutils import string_to_addr, addr_to_string, CreateEvent, OVERLAPPED, GetOverlappedResult
 
 
 __author__ = 'fabio'
 
+kernel32 = cdll.LoadLibrary("kernel32.dll")
+GetLastError = kernel32.GetLastError
+GetLastError.restype = DWORD
+GetLastError.argtypes = []
 
 def format_structure(instance):
     """

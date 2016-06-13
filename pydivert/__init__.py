@@ -22,3 +22,4 @@ PY2 = sys.version_info < (3, 0)
 
 python_isa = "amd64" if platform.architecture()[0] == "64bit" else "x86"
 system_isa = "amd64" if platform.machine() == "AMD64" else "x86"
+system_isa = "amd64" if platform.machine() == "x86_64" else system_isa

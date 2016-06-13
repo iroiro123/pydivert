@@ -14,9 +14,9 @@
 # You should have received a copy of the GNU General Public License
 # along with this program.  If not, see <http://www.gnu.org/licenses/>.
 from _ctypes import POINTER, pointer, byref, sizeof
-from ctypes.wintypes import HANDLE
+from ctypes.wintypes import HANDLE, DWORD
 import os
-from ctypes import (c_uint, c_void_p, c_uint32, c_char_p, ARRAY, c_uint64, c_int16, c_int, WinDLL,
+from ctypes import (c_uint, c_void_p, c_uint32, c_char_p, ARRAY, c_uint64, c_int16, c_int, cdll,
                     create_string_buffer, c_uint8)
 import logging
 import sys
@@ -24,7 +24,7 @@ import sys
 from pydivert.decorators import winerror_on_retcode
 from pydivert.enum import Layer, RegKeys, Defaults, ErrorCodes
 from pydivert.exception import AsyncCallFailedException, MethodUnsupportedException
-from pydivert.winutils import get_reg_values, GetLastError
+from pydivert.winutils import get_reg_values
 from pydivert.models import WinDivertAddress, IpHeader, Ipv6Header, IcmpHeader, Icmpv6Header, FuturePacket
 from pydivert.models import TcpHeader, UdpHeader, CapturedPacket, CapturedMetadata, HeaderWrapper
 
@@ -33,6 +33,12 @@ __author__ = 'fabio'
 
 #TODO: move the logger away... Probably better inside WinDivert class
 logger = logging.getLogger(__name__)
+
+
+kernel32 = cdll.LoadLibrary("kernel32.dll")
+GetLastError = kernel32.GetLastError
+GetLastError.restype = DWORD
+GetLastError.argtypes = []
 
 
 class WinDivert(object):
@@ -86,7 +92,7 @@ class WinDivert(object):
         :param dll_path: The OS path where to load the WinDivert.dll
         :return:
         """
-        self._lib = WinDLL(dll_path)
+        self._lib = cdll.LoadLibrary(dll_path)
         self.reg_key = RegKeys.VERSION11
         if not hasattr(self._lib, "WinDivertOpen"):
             logger.debug("Library does not seem to be of version >= 1.1. Assuming 1.0...")

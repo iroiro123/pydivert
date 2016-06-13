@@ -17,8 +17,8 @@
 # Original credits for the convertion functions pton e ntop to
 # https://gist.github.com/nnemkin/4966028
 # Native inet_pton and inet_ntop implementation for Python on Windows (with ctypes).
-from _ctypes import sizeof, FormatError, byref, POINTER
-from ctypes import Structure, Union, c_short, c_byte, c_ushort, c_ulong, windll, c_int, string_at, create_string_buffer
+from _ctypes import sizeof, byref, POINTER
+from ctypes import cdll, Structure, Union, c_short, c_byte, c_ushort, c_ulong, c_int, string_at, create_string_buffer
 from ctypes import memmove, c_void_p, c_char_p
 from ctypes.wintypes import DWORD, ULONG, HANDLE, BOOL
 import logging
@@ -31,7 +31,10 @@ from pydivert.exception import DriverNotRegisteredException
 try:
     import winreg
 except ImportError:
-    import _winreg as winreg
+    try:
+        import _winreg as winreg
+    except ImportError:
+        import cygwinreg as winreg
 
 __author__ = 'fabio'
 logger = logging.getLogger(__name__)
@@ -69,8 +72,9 @@ class sockaddr(Structure):
                 ("__pad2", c_ulong)]
 
 
-WSAStringToAddressA = windll.ws2_32.WSAStringToAddressA
-WSAAddressToStringA = windll.ws2_32.WSAAddressToStringA
+ws2_32 = cdll.LoadLibrary("ws2_32.dll")
+WSAStringToAddressA = ws2_32.WSAStringToAddressA
+WSAAddressToStringA = ws2_32.WSAAddressToStringA
 
 
 def inet_pton(address_family, ip_string, encoding="UTF-8"):
@@ -83,7 +87,7 @@ def inet_pton(address_family, ip_string, encoding="UTF-8"):
                            None,
                            byref(addr),
                            byref(addr_size)) != 0:
-        raise socket.error(FormatError())
+        raise socket.error("err")
 
     if address_family == socket.AF_INET:
         return string_at(addr.ipv4_addr, 4)
@@ -116,7 +120,7 @@ def inet_ntop(address_family, packed_ip, encoding="UTF-8"):
                            None,
                            ip_string,
                            byref(ip_string_size)) != 0:
-        raise socket.error(FormatError())
+        raise socket.error("err")
 
     return (ip_string[:ip_string_size.value - 1]).decode(encoding)
 
@@ -197,19 +201,20 @@ class OVERLAPPED(Structure):
     _anonymous_ = ("u",)
 
 
-CloseHandle = windll.kernel32.CloseHandle
+kernel32 = cdll.LoadLibrary("kernel32.dll")
+CloseHandle = kernel32.CloseHandle
 CloseHandle.restype = BOOL
 CloseHandle.argtypes = [HANDLE]
 
-GetLastError = windll.kernel32.GetLastError
+GetLastError = kernel32.GetLastError
 GetLastError.restype = DWORD
 GetLastError.argtypes = []
 
-GetOverlappedResult = windll.kernel32.GetOverlappedResult
+GetOverlappedResult = kernel32.GetOverlappedResult
 GetOverlappedResult.restype = BOOL
 GetOverlappedResult.argtypes = [
     HANDLE, POINTER(OVERLAPPED), POINTER(DWORD), BOOL]
 
-CreateEvent = windll.kernel32.CreateEventA
+CreateEvent = kernel32.CreateEventA
 CreateEvent.restype = HANDLE
 CreateEvent.argtypes = [c_void_p, BOOL, BOOL, c_char_p]
